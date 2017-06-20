@@ -6,6 +6,7 @@
  * Time: 20:30
  */
 
+date_default_timezone_set('PRC');
 
 /**
  * 获取网页的内容
@@ -32,6 +33,7 @@ function remote_content($url)
  */
 function remote_files($url)
 {
+    echo date('Y-m-d H:i:s').'__开始获取 '.$url.' 下的文件列表...'.PHP_EOL;
     $contents = remote_content($url);
     $files = [];
     if (!empty($contents)) {
@@ -47,6 +49,7 @@ function remote_files($url)
  */
 function remote_dirs($url)
 {
+    echo date('Y-m-d H:i:s').'__开始获取 '.$url.' 下的目录列表...'.PHP_EOL;
     $contents = remote_content($url);
     $dirs = [];
     if (!empty($contents)) {
@@ -93,10 +96,12 @@ function dir_tree($url, &$dirList){
  * @return array
  */
 function getFileUrls($url){
+    echo date('Y-m-d H:i:s').'__开始获取目录树结构...'.PHP_EOL;
     dir_tree($url, $dirList);
     $fileUrlList = [];
     if(!empty($dirList)){
         $allDirs = array_keys($dirList);
+        echo date('Y-m-d H:i:s').'__开始遍历目录树获取文件列表...'.PHP_EOL;
         foreach ($allDirs as $fileDir) {
             $fileUrlList[$fileDir] = remote_files($fileDir)[1];
         }
@@ -165,17 +170,18 @@ function genFileName($fileUrl){
  */
 function download_file($fileUrl, $destDir, $downloadLog)
 {
+    echo date('Y-m-d H:i:s').'__开始下载文件: '.$fileUrl.PHP_EOL;
     $destfile = fopen($destDir.genFileName($fileUrl), 'w');
     $ch = curl_init($fileUrl);
     curl_setopt($ch, CURLOPT_FILE, $destfile);
     $result = curl_exec($ch);
     curl_close($ch);
     if($result){
-        $log = 'INFO::成功下载 '.$fileUrl.' 文件,存储到 '.$destfile.PHP_EOL;
+        $log = date('Y-m-d H:i:s').'__INFO::成功下载 '.$fileUrl.' 文件,存储到 '.$destfile.PHP_EOL;
         file_put_contents($downloadLog, $log, FILE_APPEND);
         echo $log;
     }else{
-        echo 'ERROR::下载文件 : '.$fileUrl.' 出错!'.PHP_EOL;
+        echo date('Y-m-d H:i:s').'__ERROR::下载文件 : '.$fileUrl.' 出错!'.PHP_EOL;
     }
 }
 
@@ -185,6 +191,7 @@ function download_file($fileUrl, $destDir, $downloadLog)
  * @return mixed
  */
 function getDownloadedUrls($downloadLog){
+    echo date('Y-m-d H:i:s').'__开始解析下载日志文件: '.$downloadLog.PHP_EOL;
     $content = file_get_contents($downloadLog);
     preg_match_all('/http?:\/\/[\w-.%#?\/\\\]+/i', $content, $files);
     return $files[0];
@@ -198,6 +205,7 @@ function getDownloadedUrls($downloadLog){
  * @param $downloadLog 记录下载 log 的文件
  */
 function download($url, $suffixs = [], $destDir, $downloadLog){
+    echo date('Y-m-d H:i:s').'__开始解析 url: '.$url.PHP_EOL;
     $fileUrlList = getFileUrls($url);
     $finishedUrls = getDownloadedUrls($downloadLog);
     foreach ($fileUrlList as $baseUrl => $fileUrlArray) {
@@ -210,6 +218,7 @@ function download($url, $suffixs = [], $destDir, $downloadLog){
             }
         }
     }
+    echo date('Y-m-d H:i:s').'__下载完成。'.PHP_EOL;
 }
 
 download('http://192.168.1.6/', ['txt'], '/Users/fangcailiang/Downloads/win/', '/Users/fangcailiang/Downloads/win/download_success.log');
