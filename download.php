@@ -6,6 +6,7 @@
  * Time: 20:30
  */
 
+
 date_default_timezone_set('PRC');
 
 /**
@@ -37,7 +38,7 @@ function remote_files($url)
     $contents = remote_content($url);
     $files = [];
     if (!empty($contents)) {
-        preg_match_all('/href="([^"]*[^\/$])"/', $contents, $files);
+        preg_match_all('/<a .*?href="(.+?[^\/$])".*?>/i', $contents, $files);
     }
     return $files;
 }
@@ -191,10 +192,14 @@ function download_file($fileUrl, $destDir, $downloadLog)
  * @return mixed
  */
 function getDownloadedUrls($downloadLog){
-    echo date('Y-m-d H:i:s').'__开始解析下载日志文件: '.$downloadLog.PHP_EOL;
-    $content = file_get_contents($downloadLog);
-    preg_match_all('/http?:\/\/[\w-.%#?\/\\\]+/i', $content, $files);
-    return $files[0];
+    if(is_file($downloadLog)){
+        echo date('Y-m-d H:i:s').'__开始解析下载日志文件: '.$downloadLog.PHP_EOL;
+        $content = file_get_contents($downloadLog);
+        preg_match_all('/http?:\/\/[\w-.%#?\/\\\]+/i', $content, $files);
+        return $files[0];
+    }
+    echo date('Y-m-d H:i:s').'__日志文件: '.$downloadLog.' 不存在!'.PHP_EOL;;
+    return [];
 }
 
 /**
@@ -221,4 +226,30 @@ function download($url, $suffixs = [], $destDir, $downloadLog){
     echo date('Y-m-d H:i:s').'__下载完成。'.PHP_EOL;
 }
 
-download('http://192.168.1.6/', ['txt'], '/Users/fangcailiang/Downloads/win/', '/Users/fangcailiang/Downloads/win/download_success.log');
+function download2($url, $suffixs = [], $destDir, $downloadLog){
+//    echo date('Y-m-d H:i:s').'__开始解析 url: '.$url.PHP_EOL;
+//    $fileUrlList = getFileUrls($url);
+//    $finishedUrls = getDownloadedUrls($downloadLog);
+//    $taskList = [];
+//    foreach ($fileUrlList as $baseUrl => $fileUrlArray) {
+//        if(!empty($fileUrlArray)){
+//            foreach ($fileUrlArray as $fileName) {
+//                if(is_valid_url($baseUrl.$fileName, $suffixs) && !in_array($baseUrl.$fileName, $finishedUrls)){
+//                    $taskList[] = $baseUrl.$fileName;
+//                }
+//            }
+//        }
+//    }
+
+    $taskList = [];
+    array_push($taskList, 'http://windows.php.net/downloads/pecl/releases/xhprof/0.10.6/php_xhprof-0.10.6-5.3-nts-vc9-x86.zip');
+    array_push($taskList, 'http://windows.php.net/downloads/pecl/deps/OpenCV-2.4.13-vc14-x64.zip');
+    array_push($taskList, 'http://windows.php.net/downloads/pecl/deps/rrdtool-1.4.8-vc11-x64.zip'); // 1181462
+
+    include './fcl/MultiDownload.php';
+
+    $ad = new \fcl\MultiDownload();
+    $ad->download($taskList, $destDir, $downloadLog);
+}
+
+download2('http://windows.php.net/downloads/pecl/releases/xhprof/0.10.6/', ['zip'], '/Users/fangcailiang/Downloads/test/', '/Users/fangcailiang/Downloads/test/download_success.log');
